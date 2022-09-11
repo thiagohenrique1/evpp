@@ -45,6 +45,8 @@ bool Client::Connect(const struct sockaddr& addr) {
 bool Client::Connect() {
     sockfd_ = ::socket(AF_INET, SOCK_DGRAM, 0);
     sock::SetReuseAddr(sockfd_);
+    char* interface = "lo";
+    setsockopt(sockfd_, SOL_SOCKET, SO_BINDTODEVICE, interface, 4);
 
     struct sockaddr* addr = reinterpret_cast<struct sockaddr*>(&remote_addr_);
     socklen_t addrlen = sizeof(*addr);
