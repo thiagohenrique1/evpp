@@ -16,37 +16,38 @@ Client::~Client(void) {
     Close();
 }
 
-bool Client::Connect(const struct sockaddr_in& addr) {
+bool Client::Connect(const struct sockaddr_in& addr, char * interface) {
     memcpy(&remote_addr_, &addr, sizeof(remote_addr_));
-    return Connect();
+    return Connect(interface);
 }
 
-bool Client::Connect(const char* host, int port) {
+bool Client::Connect(const char* host, int port, char * interface) {
     char buf[32] = {};
     snprintf(buf, sizeof buf, "%s:%d", host, port);
-    return Connect(buf);
+    return Connect(buf, interface);
 }
 
-bool Client::Connect(const struct sockaddr_storage& addr) {
+bool Client::Connect(const struct sockaddr_storage& addr, char * interface) {
     memcpy(&remote_addr_, &addr, sizeof(remote_addr_));
-    return Connect();
+    return Connect(interface);
 }
 
-bool Client::Connect(const char* addr/*host:port*/) {
+bool Client::Connect(const char* addr/*host:port*/, char * interface) {
     remote_addr_ = sock::ParseFromIPPort(addr);
-    return Connect();
+    return Connect(interface);
 }
 
-bool Client::Connect(const struct sockaddr& addr) {
+bool Client::Connect(const struct sockaddr& addr, char * interface) {
     memcpy(&remote_addr_, &addr, sizeof(remote_addr_));
-    return Connect();
+    return Connect(interface);
 }
 
-bool Client::Connect() {
+bool Client::Connect(char * interface) {
     sockfd_ = ::socket(AF_INET, SOCK_DGRAM, 0);
     sock::SetReuseAddr(sockfd_);
-    char* interface = "lo";
-    setsockopt(sockfd_, SOL_SOCKET, SO_BINDTODEVICE, interface, 4);
+    if (interface != nullptr) {
+        setsockopt(sockfd_, SOL_SOCKET, SO_BINDTODEVICE, interface, 4);
+    }
 
     struct sockaddr* addr = reinterpret_cast<struct sockaddr*>(&remote_addr_);
     socklen_t addrlen = sizeof(*addr);

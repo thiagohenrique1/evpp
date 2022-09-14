@@ -13,11 +13,11 @@ public:
     Client();
     ~Client();
 
-    bool Connect(const char* host, int port);
-    bool Connect(const char* addr/*host:port*/);
-    bool Connect(const struct sockaddr_storage& addr);
-    bool Connect(const struct sockaddr& addr);
-    bool Connect(const struct sockaddr_in& addr);
+    bool Connect(const char* host, int port, char * interface = nullptr);
+    bool Connect(const char* addr/*host:port*/, char * interface = nullptr);
+    bool Connect(const struct sockaddr_storage& addr, char * interface = nullptr);
+    bool Connect(const struct sockaddr& addr, char * interface = nullptr);
+    bool Connect(const struct sockaddr_in& addr, char * interface = nullptr);
 
     void Close();
 
@@ -40,7 +40,7 @@ public:
         return sockfd_;
     }
 private:
-    bool Connect();
+    bool Connect(char * interface = nullptr);
     evpp_socket_t sockfd_ = -1;
     bool connected_ = false;
     struct sockaddr_storage remote_addr_;
