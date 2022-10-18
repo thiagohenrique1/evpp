@@ -85,14 +85,17 @@ evpp_socket_t CreateUDPServer(int port) {
         return INVALID_SOCKET;
     }
     SetReuseAddr(fd);
-    SetReusePort(fd);
+    //SetReusePort(fd);
 
-    std::string addr = std::string("224.5.23.2:") + std::to_string(port);
-    struct sockaddr_storage local = ParseFromIPPort(addr.c_str());
-    if (::bind(fd, (struct sockaddr*)&local, sizeof(struct sockaddr))) {
-        int serrno = errno;
-        LOG_ERROR << "socket bind error=" << serrno << " " << strerror(serrno);
-        return INVALID_SOCKET;
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY); // differs from sender
+    addr.sin_port = htons(port);
+
+    if (bind(fd, (struct sockaddr*) &addr, sizeof(addr)) < 0) {
+        perror("bind");
+        return 1;
     }
 
     struct ip_mreq mreq;
