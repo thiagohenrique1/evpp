@@ -37,6 +37,7 @@ public:
     bool Listen(int p) {
         this->port_ = p;
         this->fd_ = sock::CreateUDPServer(p);
+        setsockopt(this->fd_, SOL_SOCKET, SO_BINDTODEVICE, "enp3s0", 4);
         if (this->fd_ < 0) {
             LOG_ERROR << "listen error";
             return false;
