@@ -38,6 +38,8 @@ public:
         this->port_ = p;
         this->fd_ = sock::CreateUDPServer(p);
         setsockopt(this->fd_, SOL_SOCKET, SO_BINDTODEVICE, "enp3s0", 4);
+        int broadcastEnable=1;
+        setsockopt(this->fd_, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable));
         if (this->fd_ < 0) {
             LOG_ERROR << "listen error";
             return false;

@@ -87,12 +87,24 @@ evpp_socket_t CreateUDPServer(int port) {
     SetReuseAddr(fd);
     SetReusePort(fd);
 
-    std::string addr = std::string("0.0.0.0:") + std::to_string(port);
+    std::string addr = std::string("224.5.23.2:") + std::to_string(port);
     struct sockaddr_storage local = ParseFromIPPort(addr.c_str());
     if (::bind(fd, (struct sockaddr*)&local, sizeof(struct sockaddr))) {
         int serrno = errno;
         LOG_ERROR << "socket bind error=" << serrno << " " << strerror(serrno);
         return INVALID_SOCKET;
+    }
+
+    struct ip_mreq mreq;
+    mreq.imr_multiaddr.s_addr = inet_addr("224.5.23.2");
+    mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+    if (
+        setsockopt(
+            fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*) &mreq, sizeof(mreq)
+        ) < 0
+    ){
+        perror("setsockopt");
+        return 1;
     }
 
     return fd;
@@ -107,10 +119,10 @@ bool ParseFromIPPort(const char* address, struct sockaddr_storage& ss) {
     }
 
     short family = AF_INET;
-    auto index = host.find(':');
-    if (index != std::string::npos) {
-        family = AF_INET6;
-    }
+    //auto index = host.find(':');
+    //if (index != std::string::npos) {
+    //    family = AF_INET6;
+    //}
 
     struct sockaddr_in* addr = sockaddr_in_cast(&ss);
     int rc = ::evutil_inet_pton(family, host.data(), &addr->sin_addr);
@@ -128,6 +140,7 @@ bool ParseFromIPPort(const char* address, struct sockaddr_storage& ss) {
     }
 
     addr->sin_family = family;
+    addr->sin_addr.s_addr = htonl(INADDR_ANY); // differs from sender
     addr->sin_port = htons(port);
 
     return true;
